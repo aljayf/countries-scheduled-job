@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns:snowflake="http://www.mulesoft.org/schema/mule/snowflake"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/snowflake http://www.mulesoft.org/schema/mule/snowflake/current/mule-snowflake.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd">
+	<flow name="proc-countries-scheduler-app-flow" doc:id="4da15c9c-a8e2-4c7e-9294-5326ca930c54" >
+		<scheduler doc:name="Scheduler" doc:id="24c807bf-df48-4289-b4f7-335dfb97e342" >
+			<scheduling-strategy >
+				<cron expression="${scheduler.db.cron}" timeZone="${scheduler.timezone}"/>
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="start-logger" doc:id="9979adaf-7059-40cf-8ad9-6c7235cc80db" message="Start" />
+		<snowflake:select doc:name="select-all-from-case-table" doc:id="1b5c3740-a998-46c6-a1fc-7c425fc3ac6a" config-ref="Snowflake_Config">
+			<snowflake:sql ><![CDATA[SELECT * FROM case
+ORDER BY "country_id" ASC]]></snowflake:sql>
+		</snowflake:select>
+		<batch:job jobName="replicate-data-batch-job" doc:id="cb5d7301-5d7b-41e8-9fb3-6728522250a5" blockSize="5">
+			<batch:process-records >
+				<batch:step name="batch-step" doc:id="a7ea7ac7-a3d3-4190-83c6-dbcef541c0bc" >
+					<db:insert doc:name="postgres-countries-insert" doc:id="369f52cc-45dd-4b2c-8906-f4524105d16f" config-ref="Postgres_Database_Config">
+						<db:sql ><![CDATA[INSERT INTO case
+(country_id, country)
+VALUES (:CountryId, :Country)]]></db:sql>
+						<db:input-parameters ><![CDATA[#[{
+	Country: payload.Country,
+	CountryId: payload.CountryId
+}]]]></db:input-parameters>
+					</db:insert>
+				</batch:step>
+				<batch:step name="batch-failure-step" doc:id="db6944f0-3ee5-4a25-9cb4-685cf50d65e6" acceptPolicy="ONLY_FAILURES">
+					<anypoint-mq:publish doc:name="public-error-queue" doc:id="ba3370d3-6109-4872-8ccd-88ba2d40e302" config-ref="Anypoint_MQ_Config" destination="${mq.exchange.countries.error.queue}"/>
+				</batch:step>
+			</batch:process-records>
+			<batch:on-complete >
+				<logger level="INFO" doc:name="log-batch-complete" doc:id="f33890a4-1859-4d3c-ae1f-23259570936c" message="Batch Job Complete"/>
+			</batch:on-complete>
+		</batch:job>
+		<!-- <anypoint-mq:publish doc:name="publish-new-country-record" doc:id="4fa1527f-1201-4eb2-95de-1289acb18cef" config-ref="Anypoint_MQ_Config" destination="${mq.exchange.countries}"/> -->
+	</flow>
+</mule>

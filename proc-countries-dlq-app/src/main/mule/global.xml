@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns:snowflake="http://www.mulesoft.org/schema/mule/snowflake"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/snowflake http://www.mulesoft.org/schema/mule/snowflake/current/mule-snowflake.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd">
+	<global-property doc:name="Global Property" doc:id="8a80a8da-d42e-4906-ade3-8d5e5c6ff8c9" name="env" value="local" />
+	<configuration-properties doc:name="Configuration properties" doc:id="c7104e69-4fd9-4f7a-8492-8ac6a501463d" file="configuration/${env}.yaml" />
+	<anypoint-mq:config name="Anypoint_MQ_Config" doc:name="Anypoint MQ Config" doc:id="9b408c19-d897-413c-80dc-9e93f75623d3" >
+		<anypoint-mq:connection url="${mq.url}" clientId="${mq.client.id}" clientSecret="${mq.client.secret}" />
+	</anypoint-mq:config>
+	<ftp:config name="FTP_Config" doc:name="FTP Config" doc:id="d5311538-0fb3-4e9c-a997-f6aaf9bab147" >
+		<ftp:connection workingDir="${ftp.directory}" host="${ftp.host}" port="${ftp.port}" username="${ftp.client.username}" password="${ftp.client.password}"/>
+	</ftp:config>
+</mule>

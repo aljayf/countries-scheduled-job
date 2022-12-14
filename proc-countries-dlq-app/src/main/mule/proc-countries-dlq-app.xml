@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ftp="http://www.mulesoft.org/schema/mule/ftp" xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp"
+	xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/ftp http://www.mulesoft.org/schema/mule/ftp/current/mule-ftp.xsd">
+	<flow name="proc-countries-dlq-app-flow" doc:id="23ed5029-c952-4ad0-ba59-f0bb8ac28881" >
+		<anypoint-mq:subscriber doc:name="countries-dlq-subscriber" doc:id="befb8e73-6da8-41e5-b59f-dad173fe1dff" config-ref="Anypoint_MQ_Config" destination="${mq.exchange.countries.dlq}" acknowledgementMode="MANUAL" acknowledgementTimeout="${mq.ack.timeout.seconds}" acknowledgementTimeoutUnit="SECONDS" >
+			<anypoint-mq:subscriber-type >
+				<anypoint-mq:prefetch maxLocalMessages="${mq.max.local.message}" />
+			</anypoint-mq:subscriber-type>
+		</anypoint-mq:subscriber>
+		<logger level="INFO" doc:name="log-start" doc:id="3db19fb0-6b4e-4c2b-a293-0057e88a9757" message="Start proc-countries-dlq-app-flow"/>
+		<ftp:write doc:name="write-append-to-failure-report" doc:id="b9a65960-8e1e-4cf2-a738-e83e32710c98" config-ref="FTP_Config" path="${ftp.countries.failure.file.path}">
+			<ftp:content ><![CDATA[#[output application/csv
+---
+payload]]]></ftp:content>
+		</ftp:write>
+		<logger level="INFO" doc:name="log-end" doc:id="8714e9aa-532b-41a5-a7d1-aba916000917" message="End proc-countries-dlq-app-flow"/>
+		<error-handler >
+			<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="b09c5357-b2ae-4b09-8412-e6e5a7c7ecb8" >
+				<logger level="INFO" doc:name="log-error" doc:id="33ebcb49-f43d-4fed-a853-ad8d295ebeb6" message="Failed to write to file"/>
+			</on-error-continue>
+		</error-handler>
+	</flow>
+</mule>

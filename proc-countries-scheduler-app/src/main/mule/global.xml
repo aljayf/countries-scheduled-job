@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq" xmlns:snowflake="http://www.mulesoft.org/schema/mule/snowflake"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/snowflake http://www.mulesoft.org/schema/mule/snowflake/current/mule-snowflake.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
+	<global-property doc:name="Global Property" doc:id="4cda1575-1c50-4ae1-9fd8-106ac732520c" name="env" value="local" />
+	<configuration-properties doc:name="Configuration properties" doc:id="98d5dec1-37da-4e7a-b525-9acf5d9440eb" file="configuration/${env}.yaml" />
+	<db:config name="Postgres_Database_Config" doc:name="Database Config" doc:id="26f5dde7-ab08-41af-bdba-d014ad642e94" >
+		<db:generic-connection url="jdbc:postgresql://${postgre.host}:${postgre.port}/${postgre.db.name}" driverClassName="org.postgresql.Driver" user="${postgre.db.username}" password="${postgre.db.password}" />
+	</db:config>
+	<snowflake:snowflake-config name="Snowflake_Config" doc:name="Snowflake Config" doc:id="8ed821f8-203c-439d-a90b-043024d57eee" >
+		<snowflake:snowflake-connection accountName="${snowflake.account.name}" warehouse="${snowflake.warehouse}" database="${snowflake.db}" schema="${snowflake.schema}" user="${snowflake.account.username}" password="${snowflake.account.password}" role="${snowflake.account.role}"/>
+	</snowflake:snowflake-config>
+	<anypoint-mq:config name="Anypoint_MQ_Config" doc:name="Anypoint MQ Config" doc:id="1fb409cd-72bc-4e32-a88b-1efae2991d5f" >
+		<anypoint-mq:connection url="${mq.url}" clientId="${mq.client.id}" clientSecret="${mq.client.secret}" />
+	</anypoint-mq:config>
+</mule>
