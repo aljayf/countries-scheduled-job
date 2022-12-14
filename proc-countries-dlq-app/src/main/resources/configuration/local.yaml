@@ -1,0 +1,26 @@
+ftp:
+  directory: "replace_me"
+  host: "replace_me"
+  port: "replace_me"
+  countries:
+    failure:
+      file:
+        path: "countries/failedRecords.csv"
+  client:
+    username: "replace_me"
+    password: "replace_me"
+    
+mq:
+  url: "https://mq-us-west-2.anypoint.mulesoft.com/api/v1"
+  client:
+    id: "replace_me"
+    secret: "replace_me"
+  exchange:
+    countries:
+      dlq: "countries-schedule-dlq"
+  max:
+    local:
+      message: "30"
+  ack:
+    timeout:
+      seconds: "5"

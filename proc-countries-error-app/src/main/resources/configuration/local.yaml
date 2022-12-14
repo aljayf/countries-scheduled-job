@@ -1,0 +1,28 @@
+postgre:
+  host: "localhost"
+  port: "5432"
+  db:
+    name: "replace_me"
+    username: "replace_me"
+    password: "replace_me"
+    
+snowflake:
+  warehouse: "replace_me"
+  db: "replace_me"
+  schema:
+  account:
+    name: "replace_me"
+    role: "replace_me"
+    username: "replace_me"
+    password: "replace_me"
+    
+mq:
+  url: "https://mq-us-west-2.anypoint.mulesoft.com/api/v1"
+  client:
+    id: "replace_me"
+    secret: "replace_me"
+  exchange:
+    countries:
+      error: 
+        queue: "replace_me"
+    

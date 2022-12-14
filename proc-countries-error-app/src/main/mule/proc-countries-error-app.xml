@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:anypoint-mq="http://www.mulesoft.org/schema/mule/anypoint-mq"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/anypoint-mq http://www.mulesoft.org/schema/mule/anypoint-mq/current/mule-anypoint-mq.xsd">
+	<flow name="proc-countries-error-app-flow"
+		doc:id="23dd9df4-1f76-42d7-948e-16c6d4f085cd">
+		<anypoint-mq:subscriber
+			doc:name="error-queue-subscriber"
+			doc:id="f5b7783f-5a86-49cf-bc90-4bf284731f03"
+			config-ref="Anypoint_MQ_Config"
+			destination="${mq.exchange.countries.error.queue}"
+			acknowledgementMode="MANUAL"
+			acknowledgementTimeout="${mq.ack.timeout.seconds}"
+			acknowledgementTimeoutUnit="SECONDS">
+			<anypoint-mq:subscriber-type>
+				<anypoint-mq:prefetch
+					maxLocalMessages="${mq.max.local.message}" />
+			</anypoint-mq:subscriber-type>
+		</anypoint-mq:subscriber>
+		<logger level="INFO" doc:name="log-start" doc:id="123fd613-8b4e-4121-81a3-b5178ec88f9f" message="Start proc-countries-error-app-flow"/>
+		<set-variable value="#[attributes.ackToken]"
+			doc:name="set-ack-token"
+			doc:id="e31629de-cc84-4373-805b-aa1287f5e92f" variableName="ackToken" />
+		<db:insert doc:name="postgres-countries-insert"
+			doc:id="7c551887-31ad-49ec-b7e0-51c5c0998bc5"
+			config-ref="Postgres_Database_Config">
+			<db:sql><![CDATA[INSERT INTO case
+(country_id, country)
+VALUES (:CountryId, :Country)]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+	Country: payload.Country,
+	CountryId: payload.CountryId
+}]]]></db:input-parameters>
+		</db:insert>
+		<anypoint-mq:ack doc:name="ack" doc:id="3de0b4d8-5637-4c10-8f85-21b7e075ccc8" config-ref="Anypoint_MQ_Config" ackToken="#[vars.ackToken]"/>
+		<logger level="INFO" doc:name="log-end" doc:id="3335926a-8c58-45d8-b51b-b8bf950f6c31" message="End proc-countries-error-app-flow"/>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="7de805c5-a4c4-4ef3-828f-cfde2efe9671" >
+				<logger level="INFO" doc:name="log-error" doc:id="7a6f685b-d456-4745-8f7c-0062dce87d36" message="Error occured"/>
+				<anypoint-mq:nack doc:name="nack" doc:id="2faa93b0-21df-4346-bc3e-a68c1b6f9f1a" config-ref="Anypoint_MQ_Config" ackToken="#[vars.ackToken]"/>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>
